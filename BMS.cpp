@@ -165,30 +165,42 @@ void write_account() //function to write record in binary file
 
 }
 
-void delete_account(int n){
+void delete_account(int n) {
     Bank_Account ac;
-    ifstream inFile;    //input file stream
-    ofstream outFile;   //output file stream
-    inFile.open("account.dat",ios::binary);
-    if(!inFile){
-        cout<<"File could not be open !! Press any key...";
+    ifstream inFile;
+    ofstream outFile;
+    inFile.open("account.dat", ios::binary);
+    if (!inFile) {
+        cout << "Error: Could not open account file for reading." << endl;
         return;
     }
-    outFile.open("Temp.dat",ios::binary);
-    inFile.seekg(0,ios::beg);
-    
-    while(inFile.read(reinterpret_cast<char *> (&ac), sizeof(Bank_Account))){
-        if(ac.retacno()!=n){
-            outFile.write(reinterpret_cast<char *> (&ac), sizeof(Bank_Account));    
+    outFile.open("Temp.dat", ios::binary);
+    if (!outFile) {
+        cout << "Error: Could not create temporary file." << endl;
+        inFile.close();
+        return;
+    }
+
+    bool found = false;
+    while (inFile.read(reinterpret_cast<char*>(&ac), sizeof(Bank_Account))) {
+        if (ac.retacno() != n) {
+            outFile.write(reinterpret_cast<char*>(&ac), sizeof(Bank_Account));
+        } else {
+            found = true;
+            cout << "Deleting account: " << ac.retacno() << endl; // Debugging output
         }
-        
     }
     inFile.close();
     outFile.close();
-    remove("Bank_Account.dat");
-    rename("Temp.dat","Bank_Account.dat");
-    cout<<"\t Record Deleted..."<<endl;
 
+    if (!found) {
+        cout << "Account with number " << n << " not found." << endl;
+        remove("Temp.dat"); // Delete the temporary file if record not found
+    } else {
+        remove("account.dat"); // Delete the original file
+        rename("Temp.dat", "account.dat"); // Rename the temporary file
+        cout << "Account with number " << n << " deleted." << endl;
+    }
 }
 
 void display_details(int n){
